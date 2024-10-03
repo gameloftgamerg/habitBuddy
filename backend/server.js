@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ObjectId, ServerApiVersion } = require('mongodb');
 
 const app = express();
 const PORT = process.env.PORT;
@@ -34,11 +34,18 @@ async function run() {
     app.post('/habits', async (req, res) => {
       try {
         const { name } = req.body;
+        if (!name) {
+          return res.status(400).send({ error: 'Habit name is required' });
+        }
         const habit = { name, completedDates: [] };
         const result = await habitsCollection.insertOne(habit);
         res.status(201).send(result.ops[0]);
       } catch (err) {
-        res.status(500).send({ error: 'Failed to create habit', details: err.message });
+        if (err.code === 11000) {
+          res.status(409).send({ error: 'Habit already exists' });
+        } else {
+          res.status(500).send({ error: 'Failed to create habit', details: err.message });
+        }
       }
     });
 
@@ -46,8 +53,9 @@ async function run() {
       const { id } = req.params;
       const date = new Date();
       try {
+        const objectId = new ObjectId(id);
         await habitsCollection.updateOne(
-          { _id: new MongoClient.ObjectId(id) },
+          { _id: objectId },
           { $addToSet: { completedDates: date } }
         );
         res.status(200).send({ message: 'Habit marked as completed' });

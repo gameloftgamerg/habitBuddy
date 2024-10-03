@@ -6,18 +6,18 @@ const HabitTracker = () => {
     const [habitName, setHabitName] = useState('');
 
     const fetchHabits = async () => {
-        const response = await axios.get('http://localhost:5001/habits');
+        const response = await axios.get('http://localhost:2000/habits');
         setHabits(response.data);
     };
 
     const addHabit = async () => {
-        await axios.post('http://localhost:5001/habits', { name: habitName });
+        await axios.post('http://localhost:2000/habits', { name: habitName });
         setHabitName('');
         fetchHabits();
     };
 
     const completeHabit = async (id) => {
-        await axios.post(`http://localhost:5001/habits/${id}/complete`);
+        await axios.post(`http://localhost:2000/habits/${id}/complete`);
         fetchHabits();
     };
 
