@@ -1,0 +1,49 @@
+/* src/components/MainPage.css */
+.main-page {
+    font-family: Arial, sans-serif;
+    background-color: #e0f7fa;
+    padding: 20px;
+  }
+  
+  .calendar {
+    display: flex;
+    align-items: center;
+  }
+  
+  .dates {
+    display: flex;
+    overflow-x: auto;
+  }
+  
+  .date {
+    padding: 10px;
+    margin: 0 5px;
+    background-color: #4db6ac;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .date.selected {
+    background-color: #009688;
+  }
+  
+  .habits {
+    margin-top: 20px;
+  }
+  
+  .habit {
+    display: flex;
+    align-items: center;
+  }
+  
+  .habit.completed {
+     text-decoration: line-through;
+     opacity: .5;
+  }
+  
+  .status-bar {
+     margin-top:20px;
+     padding:10px;
+     background-color:#4db6ac;
+     border-radius:5px;
+  }
