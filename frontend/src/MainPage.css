@@ -16,34 +16,10 @@ h1 {
 
 .dates {
   display: flex;
-  overflow-x: auto;
 }
 
 .date {
   padding: 10px;
-  margin: 0 5px;
-  background-color: #4db6ac;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.date.selected {
-  background-color: #009688;
-}
-
-.habits {
-  margin-top: 20px;
-}
-
-.habit {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.frequency-selector label {
-   margin-right:10px;
 }
 
 .nav-button {
@@ -60,6 +36,32 @@ h1 {
    background-color:#00796b; 
 }
 
+.habits {
+  margin-top: 10px; /* Reduced spacing */
+}
+
+.habit {
+  display: flex;
+  align-items: center;
+  padding: 8px; /* Reduced padding */
+}
+
+.popup {
+   position: fixed;
+   top:50%;
+   left:50%;
+   transform:translate(-50%,-50%);
+   background-color:white;
+   border-radius:8px;
+   padding:20px;
+   box-shadow:0px 0px 10px rgba(0,0,0,.5);
+   z-index:1000;
+}
+
+.frequency-selector label {
+   margin-right:10px;
+}
+
 .calendar-view {
    display: grid;
    grid-template-columns: repeat(7, minmax(0,1fr));
@@ -68,11 +70,16 @@ h1 {
 }
 
 .calendar-day {
-   padding:20px; 
+   padding:10px; /* Reduced padding */
    text-align:center; 
    background-color:#b2dfdb; 
    border-radius:5px; 
-   transition:.3s; 
+}
+
+.shaded-habit {
+   margin-top:5px;
+   padding:2px;
+   border-radius:3px;
 }
 
 .calendar-day.completed {

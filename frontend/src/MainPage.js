@@ -9,12 +9,12 @@ const MainPage = () => {
   const [frequencyDays, setFrequencyDays] = useState([]);
   const [showCalendarView, setShowCalendarView] = useState(false);
   const [habitColor, setHabitColor] = useState('#4db6ac'); // Default color
-
+  const [showAddHabitPopup, setShowAddHabitPopup] = useState(false);
+  
   // Generate an array of dates for the current month
-  const generateDates = (monthOffset) => {
-    const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + monthOffset, 1);
-    const daysInMonth = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
-    return Array.from({ length: daysInMonth }, (_, i) => new Date(startDate.getFullYear(), startDate.getMonth(), i + 1));
+  const generateDates = () => {
+    const daysInMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), i + 1));
   };
 
   // Handle adding a new habit
@@ -22,10 +22,16 @@ const MainPage = () => {
     if (newHabit && frequencyDays.length > 0) {
       const updatedHabits = [...habits, { name: newHabit, frequencyDays, color: habitColor }];
       setHabits(updatedHabits);
-      setNewHabit('');
-      setFrequencyDays([]);
-      setHabitColor('#4db6ac'); // Reset to default color
+      resetHabitForm();
     }
+  };
+
+  // Reset habit form fields
+  const resetHabitForm = () => {
+    setNewHabit('');
+    setFrequencyDays([]);
+    setHabitColor('#4db6ac'); // Reset to default color
+    setShowAddHabitPopup(false); // Close popup
   };
 
   // Toggle completion status of a habit
@@ -39,13 +45,13 @@ const MainPage = () => {
     );
   };
 
-  // Change month in the calendar
+  // Change date in the calendar
   const handleScrollLeft = () => {
-    setSelectedDate(new Date(selectedDate.setMonth(selectedDate.getMonth() - 1)));
+    setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)));
   };
 
   const handleScrollRight = () => {
-    setSelectedDate(new Date(selectedDate.setMonth(selectedDate.getMonth() + 1)));
+    setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)));
   };
 
   // Handle frequency selection for habits
@@ -65,16 +71,10 @@ const MainPage = () => {
       <div className="calendar">
         <button className="nav-button" onClick={handleScrollLeft}>&lt;</button>
         <div className="dates">
-          {generateDates(0).map(date => (
-            <div
-              key={date.toString()}
-              className={`date ${date.toDateString() === selectedDate.toDateString() ? 'selected' : ''}`}
-              onClick={() => setSelectedDate(date)}
-            >
-              <span>{date.getDate()}</span>
-              <span>{date.toLocaleString('default', { weekday: 'short' })}</span>
-            </div>
-          ))}
+          <div className="date">
+            <span>{selectedDate.getDate()}</span>
+            <span>{selectedDate.toLocaleString('default', { weekday: 'short' })}</span>
+          </div>
         </div>
         <button className="nav-button" onClick={handleScrollRight}>&gt;</button>
       </div>
@@ -94,48 +94,56 @@ const MainPage = () => {
           </div>
         ))}
 
-        {/* Input for adding new habits */}
-        <input
-          type="text"
-          placeholder="Add Habit"
-          value={newHabit}
-          onChange={(e) => setNewHabit(e.target.value)}
-        />
-        
-        {/* Color picker for habit color */}
-        <input
-          type="color"
-          value={habitColor}
-          onChange={(e) => setHabitColor(e.target.value)}
-        />
-        
-        {/* Frequency selection for habits */}
-        <div className="frequency-selector">
-          {[...Array(7)].map((_, index) => (
-            <label key={index}>
-              <input
-                type="checkbox"
-                checked={frequencyDays.includes(index)}
-                onChange={() => handleFrequencyChange(index)}
-              />
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index]}
-            </label>
-          ))}
-        </div>
-        
-        {/* Button to add the new habit */}
-        <button onClick={handleAddHabit}>Add Habit</button>
-        
+        {/* Button to open Add Habit Popup */}
+        <button onClick={() => setShowAddHabitPopup(true)}>Add Habit</button>
+
         {/* Button to toggle calendar view */}
         <button onClick={() => setShowCalendarView(!showCalendarView)}>Toggle Calendar View</button>
       </div>
 
+      {/* Add Habit Popup */}
+      {showAddHabitPopup && (
+        <div className="popup">
+          <h3>Add New Habit</h3>
+          <input
+            type="text"
+            placeholder="Add Habit"
+            value={newHabit}
+            onChange={(e) => setNewHabit(e.target.value)}
+          />
+          <input
+            type="color"
+            value={habitColor}
+            onChange={(e) => setHabitColor(e.target.value)}
+          />
+          <div className="frequency-selector">
+            {[...Array(7)].map((_, index) => (
+              <label key={index}>
+                <input
+                  type="checkbox"
+                  checked={frequencyDays.includes(index)}
+                  onChange={() => handleFrequencyChange(index)}
+                />
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index]}
+              </label>
+            ))}
+          </div>
+          <button onClick={handleAddHabit}>Add Habit</button>
+          <button onClick={resetHabitForm}>Cancel</button>
+        </div>
+      )}
+
       {/* Calendar View */}
       {showCalendarView && (
         <div className="calendar-view">
-          {generateDates(0).map(date => (
+          {generateDates().map(date => (
             <div key={date.toString()} className={`calendar-day ${habits.some(habit => habit.frequencyDays.includes(date.getDay()) && habit.completed) ? 'completed' : ''}`}>
               {date.getDate()}
+              {habits.filter(habit => habit.frequencyDays.includes(date.getDay())).map(habit => (
+                <div key={habit.name} style={{ backgroundColor: habit.color }} className={`shaded-habit ${habit.completed ? 'completed' : ''}`}>
+                  {habit.name}
+                </div>
+              ))}
             </div>
           ))}
         </div>
