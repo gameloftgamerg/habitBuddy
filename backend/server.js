@@ -3,9 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { MongoClient, ObjectId, ServerApiVersion } = require('mongodb');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 2000;
 
 // Middleware
 app.use(cors());
@@ -13,7 +15,6 @@ app.use(bodyParser.json());
 
 // MongoDB Connection URI
 const uri = process.env.MONGO_URI;
-
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -22,6 +23,9 @@ const client = new MongoClient(uri, {
   }
 });
 
+// JWT secret
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Change for production
+
 async function run() {
   try {
     await client.connect();
@@ -29,49 +33,73 @@ async function run() {
 
     const db = client.db("habit-tracker");
     const habitsCollection = db.collection("habits");
+    const usersCollection = db.collection("users");
 
-    // Routes
-    app.post('/habits', async (req, res) => {
+    // User Registration
+    app.post('/register', async (req, res) => {
+      const { username, password } = req.body;
+      if (!username || !password) {
+        return res.status(400).send({ error: 'Username and password are required' });
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = { username, password: hashedPassword };
+      await usersCollection.insertOne(user);
+      res.status(201).send({ message: 'User registered successfully' });
+    });
+
+    // User Login
+    app.post('/login', async (req, res) => {
+      const { username, password } = req.body;
+      const user = await usersCollection.findOne({ username });
+      if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(401).send({ error: 'Invalid username or password' });
+      }
+      const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+      res.send({ token });
+    });
+
+    // Middleware to verify JWT
+    const authenticateJWT = (req, res, next) => {
+      const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
+      if (token) {
+        jwt.verify(token, JWT_SECRET, (err, user) => {
+          if (err) {
+            return res.sendStatus(403);
+          }
+          req.user = user;
+          next();
+        });
+      } else {
+        res.sendStatus(401);
+      }
+    };
+
+    // Habit routes now require authentication
+    app.post('/habits', authenticateJWT, async (req, res) => {
       try {
         const { name } = req.body;
         if (!name) {
           return res.status(400).send({ error: 'Habit name is required' });
         }
-        const habit = { name, completedDates: [] };
+        const habit = { name, completedDates: [], userId: req.user.id };
         const result = await habitsCollection.insertOne(habit);
         res.status(201).send(result.ops[0]);
       } catch (err) {
-        if (err.code === 11000) {
-          res.status(409).send({ error: 'Habit already exists' });
-        } else {
-          res.status(500).send({ error: 'Failed to create habit', details: err.message });
-        }
+        res.status(500).send({ error: 'Failed to create habit', details: err.message });
       }
     });
 
-    app.post('/habits/:id/complete', async (req, res) => {
-      const { id } = req.params;
-      const date = new Date();
+    // Fetch habits for logged-in user
+    app.get('/habits', authenticateJWT, async (req, res) => {
       try {
-        const objectId = new ObjectId(id);
-        await habitsCollection.updateOne(
-          { _id: objectId },
-          { $addToSet: { completedDates: date } }
-        );
-        res.status(200).send({ message: 'Habit marked as completed' });
-      } catch (err) {
-        res.status(500).send({ error: 'Failed to update habit', details: err.message });
-      }
-    });
-
-    app.get('/habits', async (req, res) => {
-      try {
-        const habits = await habitsCollection.find().toArray();
+        const habits = await habitsCollection.find({ userId: req.user.id }).toArray();
         res.status(200).send(habits);
       } catch (err) {
         res.status(500).send({ error: 'Failed to fetch habits', details: err.message });
       }
     });
+
+    // Other habit routes...
 
     // Start the server
     app.listen(PORT, () => {
