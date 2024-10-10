@@ -1,6 +1,5 @@
-// src/components/ForgotPassword.js
 import React, { useState } from 'react';
-import './ForgotPassword.css'; // Optional: for styling
+import './ForgotPassword.css'; // Updated for new styling
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -10,7 +9,6 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Replace with your API endpoint
     const response = await fetch('https://your-api-url/forgot-password', {
       method: 'POST',
       headers: {
@@ -36,16 +34,17 @@ const ForgotPassword = () => {
       {message && <p className="success">{message}</p>}
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email:</label>
+        <div className="input-group">
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="animated-input"
           />
+          <label>Email:</label>
         </div>
-        <button type="submit">Send Reset Link</button>
+        <button type="submit" className="submit-button">Send Reset Link</button>
       </form>
     </div>
   );
