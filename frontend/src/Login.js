@@ -1,7 +1,7 @@
 // components/LoginPage.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./LoginPage.css"; // You can create a CSS file to style the login page.
+import "./Login.css"; // You can create a CSS file to style the login page.
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
