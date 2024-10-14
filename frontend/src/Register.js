@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import './Register.css'; // Optional: for styling
 
-const Register = () => {
+const Register = ({ setToken }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,13 +17,13 @@ const Register = () => {
       return;
     }
 
-    // Replace with your API endpoint
-    const response = await fetch('https://your-api-url/register', {
+    // Use the correct API endpoint
+    const response = await fetch('http://localhost:2000/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username: email, password }), // Match with your backend
     });
 
     if (response.ok) {
@@ -34,7 +34,7 @@ const Register = () => {
       setError('');
     } else {
       const errorData = await response.json();
-      setError(errorData.message || 'Registration failed');
+      setError(errorData.error || 'Registration failed');
     }
   };
 

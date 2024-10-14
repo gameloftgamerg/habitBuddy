@@ -24,7 +24,7 @@ const client = new MongoClient(uri, {
 });
 
 // JWT secret
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Change for production
+const JWT_SECRET = process.env.JWT_SECRET; // Change for production
 
 async function run() {
   try {
@@ -57,6 +57,7 @@ async function run() {
       const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
       res.send({ token });
     });
+
 
     // Middleware to verify JWT
     const authenticateJWT = (req, res, next) => {
