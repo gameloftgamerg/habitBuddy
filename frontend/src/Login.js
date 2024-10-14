@@ -1,22 +1,34 @@
-// components/LoginPage.js
+// src/components/Login.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./LoginPage.css"; // You can create a CSS file to style the login page.
+import "./Login.css"; // You can create a CSS file to style the login page.
 
-const LoginPage = () => {
+const Login = ({ setToken, setIsLoggedIn }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Mock login logic for now, could add backend later
-    if (email === "user@example.com" && password === "password") {
-      setError("");
-      navigate("/dashboard"); // Redirect to dashboard
+
+    const response = await fetch('http://localhost:2000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username: email, password }), // Match with your backend
+    });
+
+    const data = await response.json();
+    
+    if (response.ok) {
+      setToken(data.token);
+      localStorage.setItem('token', data.token);
+      setIsLoggedIn(true);
+      navigate("/"); // Redirect to the main page
     } else {
-      setError("Invalid email or password");
+      setError(data.error || 'Invalid email or password');
     }
   };
 
@@ -57,4 +69,5 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default Login;
+
