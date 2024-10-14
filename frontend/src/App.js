@@ -14,7 +14,7 @@ const App = () => {
 
     return (
         <Router>
-            <Navbar setToken={setToken} /> 
+            <Navbar /> 
             <Routes>
                 <Route path="/register" element={<Register setToken={setToken} setIsLoggedIn={setIsLoggedIn}/>} />
                 <Route path="/login" element={<Login setToken={setToken} setIsLoggedIn={setIsLoggedIn}/>} />
