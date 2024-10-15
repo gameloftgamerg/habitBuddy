@@ -5,9 +5,14 @@ const bodyParser = require('body-parser');
 const { MongoClient, ObjectId, ServerApiVersion } = require('mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const app = express();
-const PORT = process.env.PORT || 2000;
+const PORT = process.env.PORT;
+
+// Ignore self-signed certificates (for development only)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Middleware
 app.use(cors());
@@ -26,6 +31,15 @@ const client = new MongoClient(uri, {
 // JWT secret
 const JWT_SECRET = process.env.JWT_SECRET; // Change for production
 
+// Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'Gmail', // or any other email service
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 async function run() {
   try {
     await client.connect();
@@ -37,30 +51,85 @@ async function run() {
 
     // User Registration
     app.post('/register', async (req, res) => {
-      const { username, password } = req.body;
-      if (!username || !password) {
-        return res.status(400).send({ error: 'Username and password are required.' });
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).send({ error: 'Email and password are required.' });
       } 
-      if (await usersCollection.findOne({username})) {
+      if (await usersCollection.findOne({email})) {
         return res.status(400).send({ error: 'User already exists. Try logging in.' });
       }
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = { username, password: hashedPassword };
+      const user = { email, password: hashedPassword };
       await usersCollection.insertOne(user);
       res.status(201).send({ message: 'User registered successfully.' });
     });
 
     // User Login
     app.post('/login', async (req, res) => {
-      const { username, password } = req.body;
-      const user = await usersCollection.findOne({ username });
+      const { email, password } = req.body;
+      const user = await usersCollection.findOne({ email });
       if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.status(401).send({ error: 'Invalid username or password' });
+        return res.status(401).send({ error: 'Invalid email or password' });
       }
       const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
       res.send({ token });
     });
 
+    // Password Reset Request
+    app.post('/forgot-password', async (req, res) => {
+      const { email } = req.body;
+
+      try {
+        const user = await usersCollection.findOne({ email });
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        const token = crypto.randomBytes(32).toString('hex');
+        const resetToken = {
+          token,
+          expires: Date.now() + 3600000, // 1 hour
+        };
+
+        await usersCollection.updateOne(
+          { email },
+          { $set: { resetToken } }
+        );
+
+        const resetLink = `http://localhost:3000/reset-password?token=${token}&id=${user._id}`;
+        await transporter.sendMail({
+          to: user.email, // Assuming the user document has an email field
+          subject: 'Password Reset',
+          html: `<p>Click <a href="${resetLink}">here</a> to reset your password</p>`,
+        });
+
+        res.json({ message: 'Password reset email sent' });
+      } catch (error) {
+        res.status(500).json({ error: 'Failed to send password reset email' });
+        console.error('Error:', error);
+      }
+    });
+
+    // Password Reset
+    app.post('/reset-password', async (req, res) => {
+      try {
+        const { token, id, newPassword } = req.body;
+        const user = await usersCollection.findOne({ _id: new ObjectId(id), "resetToken.token": token, "resetToken.expires": { $gt: Date.now() } });
+        if (!user) {
+          return res.status(400).send({ error: 'Invalid or expired token' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await usersCollection.updateOne(
+          { _id: user._id },
+          { $set: { password: hashedPassword, resetToken: null, resetTokenExpiry: null } }
+        );
+
+        res.status(200).send({ message: 'Password reset successfully' });
+      } catch (err) {
+        res.status(500).send({ error: 'Failed to reset password', details: err.message });
+      }
+    });
 
     // Middleware to verify JWT
     const authenticateJWT = (req, res, next) => {
@@ -81,11 +150,11 @@ async function run() {
     // Habit routes now require authentication
     app.post('/habits', authenticateJWT, async (req, res) => {
       try {
-        const { name } = req.body;
-        if (!name) {
-          return res.status(400).send({ error: 'Habit name is required' });
+        const { name, frequencyDays, color } = req.body;
+        if (!name || !frequencyDays) {
+          return res.status(400).send({ error: 'Habit name and frequency days are required' });
         }
-        const habit = { name, completedDates: [], userId: req.user.id };
+        const habit = { name, frequencyDays, color, completedDates: [], userId: req.user.id };
         const result = await habitsCollection.insertOne(habit);
         res.status(201).send(result.ops[0]);
       } catch (err) {
@@ -103,7 +172,25 @@ async function run() {
       }
     });
 
-    // Other habit routes...
+    // Mark habit as completed
+    app.post('/habits/:id/complete', authenticateJWT, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { date } = req.body;
+        const habit = await habitsCollection.findOne({ _id: new ObjectId(id), userId: req.user.id });
+        if (!habit) {
+          return res.status(404).send({ error: 'Habit not found' });
+        }
+        const completedDates = habit.completedDates || [];
+        if (!completedDates.includes(date)) {
+          completedDates.push(date);
+        }
+        await habitsCollection.updateOne({ _id: new ObjectId(id) }, { $set: { completedDates } });
+        res.status(200).send({ message: 'Habit marked as completed' });
+      } catch (err) {
+        res.status(500).send({ error: 'Failed to update habit', details: err.message });
+      }
+    });
 
     // Start the server
     app.listen(PORT, () => {

@@ -17,7 +17,7 @@ const Login = ({ setToken, setIsLoggedIn }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ username: email, password }), // Match with your backend
+      body: JSON.stringify({ email, password }), // Match with your backend
     });
 
     const data = await response.json();

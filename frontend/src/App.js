@@ -7,6 +7,7 @@ import Login from './Login';
 import Logout from './Logout';
 import Navbar from './Navbar'; 
 import ForgotPassword from './ForgotPassword'; 
+import ResetPassword from './ResetPassword';
 
 const App = () => {
     const [token, setToken] = useState(localStorage.getItem('token'));
@@ -20,6 +21,7 @@ const App = () => {
                 <Route path="/login" element={<Login setToken={setToken} setIsLoggedIn={setIsLoggedIn}/>} />
                 <Route path="/" element={<MainPage token={token} isLoggedIn={isLoggedIn} />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/logout" element={<Logout isLoggedIn={isLoggedIn} setToken={setToken} setIsLoggedIn={setIsLoggedIn}/>} />
             </Routes>
         </Router>

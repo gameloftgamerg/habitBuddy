@@ -1,5 +1,6 @@
 // src/components/Register.js
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Register.css'; // Optional: for styling
 
 const Register = ({ setToken }) => {
@@ -8,6 +9,7 @@ const Register = ({ setToken }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +25,7 @@ const Register = ({ setToken }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ username: email, password }), // Match with your backend
+      body: JSON.stringify({ email, password }), 
     });
 
     if (response.ok) {
@@ -32,6 +34,7 @@ const Register = ({ setToken }) => {
       setPassword('');
       setConfirmPassword('');
       setError('');
+      navigate('/login');
     } else {
       const errorData = await response.json();
       setError(errorData.error || 'Registration failed');

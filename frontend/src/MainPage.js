@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './MainPage.css'; // For styling
 import { useNavigate } from 'react-router-dom';
 
-const MainPage = ({token, isLoggedIn}) => {
+const MainPage = ({ token, isLoggedIn }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [habits, setHabits] = useState([]);
   const [newHabit, setNewHabit] = useState('');
@@ -61,6 +61,28 @@ const MainPage = ({token, isLoggedIn}) => {
     }
   };
 
+  const handleCompleteHabit = async (habitId) => {
+    try {
+      const date = selectedDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
+      const response = await fetch(`http://localhost:2000/habits/${habitId}/complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ date }),
+      });
+      if (response.ok) {
+        setHabits(prev => prev.map(habit => habit._id === habitId ? { ...habit, completedDates: [...habit.completedDates, date] } : habit));
+      } else {
+        const data = await response.json();
+        console.error('Failed to complete habit:', data.error);
+      }
+    } catch (error) {
+      console.error('Failed to complete habit:', error);
+    }
+  };
+
   const resetHabitForm = () => {
     setNewHabit('');
     setFrequencyDays([]);
@@ -104,8 +126,8 @@ const MainPage = ({token, isLoggedIn}) => {
           <div className="habits">
             <h2>Habits for {selectedDate.toLocaleDateString()}</h2>
             {habits.filter(habit => habit.frequencyDays && habit.frequencyDays.includes(selectedDate.getDay())).map(habit => (
-              <div key={habit.name} className="habit" style={{ backgroundColor: habit.color }}>
-                <input type="checkbox" onChange={() => { /* Handle completion */ }} />
+              <div key={habit._id} className="habit" style={{ backgroundColor: habit.color }}>
+                <input type="checkbox" checked={habit.completedDates.includes(selectedDate.toISOString().split('T')[0])} onChange={() => handleCompleteHabit(habit._id)} />
                 {habit.name}
               </div>
             ))}
@@ -150,10 +172,10 @@ const MainPage = ({token, isLoggedIn}) => {
           {showCalendarView && (
             <div className="calendar-view">
               {generateDates().map(date => (
-                <div key={date.toString()} className={`calendar-day ${habits.some(habit => habit.frequencyDays && habit.frequencyDays.includes(date.getDay()) && habit.completed) ? 'completed' : ''}`}>
+                <div key={date.toString()} className={`calendar-day ${habits.some(habit => habit.frequencyDays && habit.frequencyDays.includes(date.getDay()) && habit.completedDates.includes(date.toISOString().split('T')[0])) ? 'completed' : ''}`}>
                   {date.getDate()}
                   {habits.filter(habit => habit.frequencyDays && habit.frequencyDays.includes(date.getDay())).map(habit => (
-                    <div key={habit.name} style={{ backgroundColor: habit.color }} className={`shaded-habit ${habit.completed ? 'completed' : ''}`}>
+                    <div key={habit._id} style={{ backgroundColor: habit.color }} className={`shaded-habit ${habit.completedDates.includes(date.toISOString().split('T')[0]) ? 'completed' : ''}`}>
                       {habit.name}
                     </div>
                   ))}
