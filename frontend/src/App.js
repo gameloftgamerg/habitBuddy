@@ -14,13 +14,13 @@ const App = () => {
 
     return (
         <Router>
-            <Navbar /> 
+            <Navbar isLoggedIn={isLoggedIn}/> 
             <Routes>
                 <Route path="/register" element={<Register setToken={setToken} setIsLoggedIn={setIsLoggedIn}/>} />
                 <Route path="/login" element={<Login setToken={setToken} setIsLoggedIn={setIsLoggedIn}/>} />
                 <Route path="/" element={<MainPage token={token} isLoggedIn={isLoggedIn} />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/logout" element={<Logout setToken={setToken} setIsLoggedIn={setIsLoggedIn}/>} />
+                <Route path="/logout" element={<Logout isLoggedIn={isLoggedIn} setToken={setToken} setIsLoggedIn={setIsLoggedIn}/>} />
             </Routes>
         </Router>
     );
