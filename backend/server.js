@@ -39,12 +39,15 @@ async function run() {
     app.post('/register', async (req, res) => {
       const { username, password } = req.body;
       if (!username || !password) {
-        return res.status(400).send({ error: 'Username and password are required' });
+        return res.status(400).send({ error: 'Username and password are required.' });
+      } 
+      if (await usersCollection.findOne(username)) {
+        return res.status(400).send({ error: 'User already exists. Try logging in.' });
       }
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = { username, password: hashedPassword };
       await usersCollection.insertOne(user);
-      res.status(201).send({ message: 'User registered successfully' });
+      res.status(201).send({ message: 'User registered successfully.' });
     });
 
     // User Login
