@@ -41,7 +41,7 @@ async function run() {
       if (!username || !password) {
         return res.status(400).send({ error: 'Username and password are required.' });
       } 
-      if (await usersCollection.findOne(username)) {
+      if (await usersCollection.findOne({username})) {
         return res.status(400).send({ error: 'User already exists. Try logging in.' });
       }
       const hashedPassword = await bcrypt.hash(password, 10);
