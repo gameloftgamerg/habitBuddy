@@ -1,87 +1,70 @@
-/* src/components/MainPage.css */
 .main-page {
-  font-family: Arial, sans-serif;
-  background-color: #e0f7fa;
-  padding: 20px;
+   padding: 10px;
+   font-family: Arial, sans-serif;
 }
 
-h1 {
-  text-align: center;
-}
-
-.calendar {
-  display: flex;
-  align-items: center;
-}
-
-.dates {
-  display: flex;
-}
-
-.date {
-  padding: 10px;
+.carousel {
+   display: flex;
+   align-items: center;
+   padding: 2px;
 }
 
 .nav-button {
-   background-color: #009688; 
-   color:white; 
-   border:none; 
-   padding:10px; 
-   border-radius:5px; 
-   cursor:pointer; 
-   transition:.3s; 
+   background-color: #4db6ac;
+   border: none;
+   color: white;
+   border: black;
+   margin:10px;
+   border-radius: 20px;
+   width: 200px;
 }
 
-.nav-button:hover {
-   background-color:#00796b; 
+.dates {
+   display: flex;
+   justify-content: space-around;
+   flex-grow: 1;
+}
+
+.date {
+   text-align: center;
+   margin-left: 5px;
+   margin-right: 5px;
+}
+
+.selected {
+   font-weight: bold;
 }
 
 .habits {
-  margin-top: 10px; /* Reduced spacing */
+   color: blue;
+   /* text-align: justify; */
+   /* margin-right: 20px; */
 }
 
 .habit {
-  display: flex;
-  align-items: center;
-  padding: 8px; /* Reduced padding */
+   display: flex;
+   align-items: center;
+   /* justify-content: space-between; */
+   padding: 5px;
+   margin-bottom: 5px;
 }
 
 .popup {
    position: fixed;
-   top:50%;
-   left:50%;
-   transform:translate(-50%,-50%);
-   background-color:white;
-   border-radius:8px;
-   padding:20px;
-   box-shadow:0px 0px 10px rgba(0,0,0,.5);
-   z-index:1000;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   background-color: whitesmoke;
+   padding: 15px;
+   margin: 10px;
+   border-radius: 8px;
+   box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
 }
 
 .frequency-selector label {
-   margin-right:10px;
+   margin-right: 5px; /* Reduce spacing between labels */
 }
 
-.calendar-view {
-   display: grid;
-   grid-template-columns: repeat(7, minmax(0,1fr));
-   gap:5px; 
-   margin-top:20px; 
-}
-
-.calendar-day {
-   padding:10px; /* Reduced padding */
-   text-align:center; 
-   background-color:#b2dfdb; 
-   border-radius:5px; 
-}
-
-.shaded-habit {
-   margin-top:5px;
-   padding:2px;
-   border-radius:3px;
-}
-
-.calendar-day.completed {
-   background-color:#80cbc4; 
+.habit input[type="checkbox"] {
+   margin-right: 5px; /* Reduce space between checkbox and habit name */
 }
