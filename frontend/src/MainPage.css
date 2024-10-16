@@ -13,7 +13,6 @@
    background-color: #4db6ac;
    border: none;
    color: white;
-   border: black;
    margin:10px;
    border-radius: 20px;
    width: 200px;
@@ -37,14 +36,11 @@
 
 .habits {
    color: blue;
-   /* text-align: justify; */
-   /* margin-right: 20px; */
 }
 
 .habit {
    display: flex;
    align-items: center;
-   /* justify-content: space-between; */
    padding: 5px;
    margin-bottom: 5px;
 }
@@ -62,9 +58,13 @@
 }
 
 .frequency-selector label {
-   margin-right: 5px; /* Reduce spacing between labels */
+   margin-right: 5px;
 }
 
 .habit input[type="checkbox"] {
-   margin-right: 5px; /* Reduce space between checkbox and habit name */
+   margin-right: 5px;
+}
+
+.color-picker {
+   margin-top: 10px;
 }
