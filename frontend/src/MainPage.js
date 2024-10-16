@@ -19,6 +19,62 @@ const MainPage = ({ token, isLoggedIn }) => {
     }
   }, [isLoggedIn]);
 
+  const handleToggleHabit = async (habit) => {
+    const date = selectedDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
+
+    if (habit.completedDates.includes(date)) {
+        // If already completed, remove the completion
+        try {
+            const response = await fetch(`http://localhost:2000/habits/${habit._id}/incomplete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ date }),
+            });
+            if (response.ok) {
+                setHabits(prev => 
+                    prev.map(h => 
+                        h._id === habit._id 
+                            ? { ...h, completedDates: h.completedDates.filter(d => d !== date) } 
+                            : h
+                    )
+                );
+            } else {
+                console.error('Failed to mark habit as incomplete:', await response.json());
+            }
+        } catch (error) {
+            console.error('Failed to mark habit as incomplete:', error);
+        }
+    } else {
+        // If not completed, mark it as complete
+        try {
+            const response = await fetch(`http://localhost:2000/habits/${habit._id}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ date }),
+            });
+            if (response.ok) {
+                setHabits(prev => 
+                    prev.map(h => 
+                        h._id === habit._id 
+                            ? { ...h, completedDates: [...h.completedDates, date] } 
+                            : h
+                    )
+                );
+            } else {
+                console.error('Failed to mark habit as complete:', await response.json());
+            }
+        } catch (error) {
+            console.error('Failed to mark habit as complete:', error);
+        }
+    }
+  };
+
   const fetchHabits = async () => {
     try {
       const response = await fetch('http://localhost:2000/habits', {
@@ -99,8 +155,14 @@ const MainPage = ({ token, isLoggedIn }) => {
         <h2>Habits for {selectedDate.toLocaleDateString('en-GB')}</h2>
         {habits.filter(habit => habit.frequencyDays.includes(selectedDate.getDay())).map(habit => (
           <div key={habit._id} className="habit" style={{ backgroundColor: habit.color || '#4db6ac' }}>
-            <input type="checkbox" checked={habit.completedDates.includes(selectedDate.toISOString().split('T')[0])} />
-            <span>{habit.name}</span>
+            <span className={habit.completedDates.includes(selectedDate.toISOString().split('T')[0]) ? 'completed' : ''}>
+              {habit.name}</span>
+            <div>
+              <input type = "checkbox"
+              checked={habit.completedDates.includes(selectedDate.toISOString().split('T')[0])}
+              onChange={() => handleToggleHabit(habit)}
+              />
+            </div>
           </div>
         ))}
 
