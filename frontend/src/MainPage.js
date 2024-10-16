@@ -7,10 +7,10 @@ const MainPage = ({ token, isLoggedIn }) => {
   const [habits, setHabits] = useState([]);
   const [newHabit, setNewHabit] = useState('');
   const [frequencyDays, setFrequencyDays] = useState([]);
+  const [habitColor, setHabitColor] = useState('#4db6ac'); // default color
   const [showAddHabitPopup, setShowAddHabitPopup] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch habits on login
   useEffect(() => {
     if (isLoggedIn) {
       fetchHabits();
@@ -36,7 +36,7 @@ const MainPage = ({ token, isLoggedIn }) => {
 
   const handleAddHabit = async () => {
     if (newHabit && frequencyDays.length > 0) {
-      const habit = { name: newHabit, frequencyDays };
+      const habit = { name: newHabit, frequencyDays, color: habitColor };
       try {
         const response = await fetch('http://localhost:2000/habits', {
           method: 'POST',
@@ -62,6 +62,7 @@ const MainPage = ({ token, isLoggedIn }) => {
   const resetHabitForm = () => {
     setNewHabit('');
     setFrequencyDays([]);
+    setHabitColor('#4db6ac');
     setShowAddHabitPopup(false);
   };
 
@@ -73,7 +74,6 @@ const MainPage = ({ token, isLoggedIn }) => {
     }
   };
 
-  // Carousel Navigation
   const changeDate = (days) => {
     setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + days)));
   };
@@ -85,7 +85,7 @@ const MainPage = ({ token, isLoggedIn }) => {
       <div className="carousel">
         <button className="nav-button" onClick={() => changeDate(-1)}>&lt;</button>
         <div className="dates">
-          {Array.from({ length: 5 }, (_, i) => 
+          {Array.from({ length: 5 }, (_, i) =>
             <div key={i} className={`date ${i === 2 ? 'selected' : ''}`}>
               <span>{new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() + i - 2).getDate().toString().padStart(2, '0')}</span>
               <span>{new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() + i - 2).toLocaleString('default', { weekday: 'short' })}</span>
@@ -96,18 +96,17 @@ const MainPage = ({ token, isLoggedIn }) => {
       </div>
 
       <div className="habits">
-        <h2>Habits for {selectedDate.toLocaleDateString('en-GB')}</h2> {/* Change here */}
+        <h2>Habits for {selectedDate.toLocaleDateString('en-GB')}</h2>
         {habits.filter(habit => habit.frequencyDays.includes(selectedDate.getDay())).map(habit => (
-          <div key={habit._id} className="habit" style={{ backgroundColor: '#4db6ac' }}>
+          <div key={habit._id} className="habit" style={{ backgroundColor: habit.color || '#4db6ac' }}>
             <input type="checkbox" checked={habit.completedDates.includes(selectedDate.toISOString().split('T')[0])} />
-              <span>{habit.name}</span>
+            <span>{habit.name}</span>
           </div>
         ))}
 
         <button onClick={() => setShowAddHabitPopup(true)}>Add Habit</button>
       </div>
 
-      {/* Add Habit Popup */}
       {showAddHabitPopup && (
         <div className="popup">
           <h3>Add New Habit</h3>
@@ -118,16 +117,24 @@ const MainPage = ({ token, isLoggedIn }) => {
             onChange={(e) => setNewHabit(e.target.value)}
           />
           <div className="frequency-selector">
-            {[...Array(7)].map((_, index) => (
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
               <label key={index}>
                 <input
                   type="checkbox"
                   checked={frequencyDays.includes(index)}
                   onChange={() => handleFrequencyChange(index)}
                 />
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index]}
+                {day}
               </label>
             ))}
+          </div>
+          <div className="color-picker">
+            <label>Select Habit Color: </label>
+            <input
+              type="color"
+              value={habitColor}
+              onChange={(e) => setHabitColor(e.target.value)}
+            />
           </div>
           <button onClick={handleAddHabit}>Add Habit</button>
           <button onClick={resetHabitForm}>Cancel</button>
