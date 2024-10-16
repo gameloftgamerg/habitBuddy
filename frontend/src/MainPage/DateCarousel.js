@@ -10,7 +10,7 @@ const DateCarousel = ({ selectedDate, changeDate }) => {
                 {Array.from({ length: 5 }, (_, i) =>
                     <div key={i} className={`date ${i === 2 ? 'selected' : ''}`}>
                         <span>{new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() + i - 2).getDate().toString().padStart(2, '0')}</span>
-                        <span>{new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() + i - 2).toLocaleString('default', { weekday: 'short' })}</span>
+                        <span>-{new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() + i - 2).toLocaleString('default', { weekday: 'short' })}</span>
                     </div>
                 )}
             </div>

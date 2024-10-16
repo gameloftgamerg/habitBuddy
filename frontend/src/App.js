@@ -1,13 +1,13 @@
 // src/App.js
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import MainPage from './MainPage';
-import Register from './Register';
-import Login from './Login';
+import MainPage from './MainPage/MainPage';
+import Register from './Register/Register';
+import Login from './Login/Login';
 import Logout from './Logout';
-import Navbar from './Navbar'; 
-import ForgotPassword from './ForgotPassword'; 
-import ResetPassword from './ResetPassword';
+import Navbar from './NavBar/Navbar'; 
+import ForgotPassword from './ForgotPassword/ForgotPassword'; 
+import ResetPassword from './ResetPassword/ResetPassword';
 
 const App = () => {
     const [token, setToken] = useState(localStorage.getItem('token'));
