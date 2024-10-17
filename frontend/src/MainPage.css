@@ -1,4 +1,31 @@
 /* src/components/MainPage.css */
+
+:root {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --habit-background-color: #f0f0f0;
+  --popup-background-color: #ffffff;
+}
+
+body.dark-mode {
+  --background-color: #121212;
+  --text-color: #ffffff;
+  --habit-background-color: #333333;
+  --popup-background-color: #1e1e1e;
+}
+
+body.light-mode {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --habit-background-color: #f0f0f0;
+  --popup-background-color: #ffffff;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
 .main-page {
   font-family: Arial, sans-serif;
   background-color: #e0f7fa;
@@ -44,6 +71,7 @@ h1 {
   display: flex;
   align-items: center;
   padding: 8px; /* Reduced padding */
+  background-color: var(--habit-background-color);
 }
 
 .popup {
@@ -51,7 +79,7 @@ h1 {
    top:50%;
    left:50%;
    transform:translate(-50%,-50%);
-   background-color:white;
+   background-color: var(--popup-background-color);
    border-radius:8px;
    padding:20px;
    box-shadow:0px 0px 10px rgba(0,0,0,.5);
