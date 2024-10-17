@@ -1,0 +1,110 @@
+.main-page {
+   padding: 10px;
+   font-family: Arial, sans-serif;
+}
+
+.carousel {
+   display: flex;
+   align-items: center;
+   padding: 2px;
+}
+
+.nav-button {
+   background-color: #4db6ac;
+   border: none;
+   color: white;
+   margin: 0 10px;
+   border-radius: 20px;
+   width: 80px; /* Adjust width for a better fit */
+   height: 40px;
+   font-size: 16px;
+   cursor: pointer;
+}
+
+.dates {
+   display: flex;
+   justify-content: space-around;
+   flex-grow: 1;
+   margin: 0 15px;
+}
+
+.date {
+   text-align: center;
+   margin-left: 5px;
+   margin-right: 5px;
+   font-size: 18px;
+   padding: 10px 0;
+}
+
+.selected {
+   font-weight: bold;
+   color: #4db6ac;
+}
+
+.habits {
+   display: flex;
+   flex-direction: column;
+   padding: 10px;
+   width: 98%; /* Full width for the habit container */
+}
+
+.habit {
+   display: flex;
+   flex-direction: row;
+   padding: 5px; /* Reduced padding for tighter spacing */
+   background-color: #4db6ac;
+   border-radius: 8px;
+   margin-bottom: 8px;
+   width: 100%; /* Full width */
+   /* Ensure padding/border fits within width */
+}
+
+.habit span {
+   font-size: 16px;
+   color: black;
+   text-align: left; /* Align text to the left */
+   line-height: 1.5; /* Adjusts line height for better spacing */
+}
+
+
+.popup {
+   position: fixed;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   background-color: #fff;
+   padding: 20px;
+   border-radius: 8px;
+   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+   z-index: 1000;
+}
+
+.frequency-selector {
+   display: flex;
+   justify-content: space-between;
+   margin-top: 10px;
+}
+
+.frequency-selector label {
+   margin-right: 5px;
+   display: flex;
+   align-items: center;
+}
+
+.color-picker {
+   margin-top: 15px;
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+}
+
+.color-picker input[type="color"] {
+   border: none;
+   cursor: pointer;
+}
+
+.completed {
+   text-decoration: line-through; /* Strikethrough effect */
+   color: gray; /* Dimmed color */
+   opacity: 0.6; /* Optional: further dimming */
+}
