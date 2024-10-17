@@ -113,6 +113,7 @@ const MainPage = ({ token, isLoggedIn }) => {
                     console.error('Failed to add habit:', data.error);
                 }
                 resetHabitForm();
+                fetchHabits();
             } catch (error) {
                 console.error('Failed to add habit:', error);
             }
@@ -147,7 +148,7 @@ const MainPage = ({ token, isLoggedIn }) => {
           <h2>Habits for {selectedDate.toLocaleDateString('en-GB')}</h2>
           <HabitList habits={habits.filter(habit => habit.frequencyDays.includes(selectedDate.getDay()))} selectedDate={selectedDate} handleToggleHabit={handleToggleHabit} />
 
-          <button onClick={() => setShowAddHabitPopup(true)}>Add Habit</button>
+          <button id = "addhabit" onClick={() => setShowAddHabitPopup(true)}>Add Habit</button>
 
           {showAddHabitPopup && (
               <AddHabitPopup 
