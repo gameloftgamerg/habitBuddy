@@ -1,7 +1,6 @@
-// MainPage.js
 import React, { useState, useEffect } from 'react';
-import './MainPage.css'; // For styling
 import { useNavigate } from 'react-router-dom';
+import './MainPage.css';
 import HabitList from './HabitList';
 import AddHabitPopup from './AddHabitPopup';
 import DateCarousel from './DateCarousel';
@@ -13,25 +12,21 @@ const MainPage = ({ token, isLoggedIn }) => {
     const [habits, setHabits] = useState([]);
     const [newHabit, setNewHabit] = useState('');
     const [frequencyDays, setFrequencyDays] = useState([]);
-    const [habitColor, setHabitColor] = useState('#4db6ac'); // default color
+    const [habitColor, setHabitColor] = useState('#4db6ac');
     const [showAddHabitPopup, setShowAddHabitPopup] = useState(false);
-    const [avatar, setAvatar] = useState({}); // State to store the avatar configuration
+    const [avatar, setAvatar] = useState({});
     const [editAvatar, setEditAvatar] = useState(false);
-
     const navigate = useNavigate();
 
     useEffect(() => {
         if (isLoggedIn) {
             fetchHabits();
+            fetchAvatar();
         } else {
             navigate("/login");
         }
     }, [isLoggedIn]);
 
-    const closeAvatarBuilder = () => {
-        setEditAvatar(false); // This sets the state to false, effectively closing the avatar builder
-    };
-    
     const fetchAvatar = async () => {
         try {
             const response = await fetch('http://localhost:2000/avatar', {
@@ -46,17 +41,6 @@ const MainPage = ({ token, isLoggedIn }) => {
             console.error('Failed to fetch avatar:', error);
         }
     };
-    
-    // Call fetchAvatar after fetching habits
-    useEffect(() => {
-        if (isLoggedIn) {
-            fetchHabits();
-            fetchAvatar(); // Fetch avatar when user logs in
-        } else {
-            navigate("/login");
-        }
-    }, [isLoggedIn]);
-    
 
     const fetchHabits = async () => {
         try {
@@ -92,7 +76,7 @@ const MainPage = ({ token, isLoggedIn }) => {
                     console.error('Failed to add habit:', data.error);
                 }
                 resetHabitForm();
-                fetchHabits();
+                fetchHabits(); // Refresh habits after adding
             } catch (error) {
                 console.error('Failed to add habit:', error);
             }
@@ -106,11 +90,15 @@ const MainPage = ({ token, isLoggedIn }) => {
         setShowAddHabitPopup(false);
     };
 
+    const handleViewCalendar = (habit) => {
+        navigate('/calendar', { state: { habit, selectedDate } }); // Navigate with selected habit and date
+    };
+
     return (
         <div className="main-page">
             <h1>Habit Tracker</h1>
 
-            {/* Display Avatar and Edit Button */}
+            {/* Avatar Section */}
             <div className="avatar-section">
                 <h2>Your Avatar</h2>
                 <AvatarDisplay avatar={avatar} />
@@ -119,16 +107,25 @@ const MainPage = ({ token, isLoggedIn }) => {
                 </button>
             </div>
 
-            {/* Conditionally render AvatarBuilder */}
-            {editAvatar && <AvatarBuilder 
-            avatar={avatar} 
-            setAvatar={setAvatar} 
-            token = {token} />}
+            {editAvatar && (
+                <AvatarBuilder 
+                    avatar={avatar} 
+                    setAvatar={setAvatar} 
+                    token={token} 
+                />
+            )}
 
-            <DateCarousel selectedDate={selectedDate} changeDate={(days) => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + days)))} />
+            <DateCarousel 
+                selectedDate={selectedDate} 
+                changeDate={(days) => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + days)))} 
+            />
 
             <h2>Habits for {selectedDate.toLocaleDateString('en-GB')}</h2>
-            <HabitList habits={habits.filter(habit => habit.frequencyDays.includes(selectedDate.getDay()))} selectedDate={selectedDate} />
+            <HabitList 
+                habits={habits.filter(habit => habit.frequencyDays.includes(selectedDate.getDay()))} 
+                selectedDate={selectedDate} 
+                handleViewCalendar={handleViewCalendar} // Ensure this is passed down
+            />
 
             <button id="addhabit" onClick={() => setShowAddHabitPopup(true)}>Add Habit</button>
 
