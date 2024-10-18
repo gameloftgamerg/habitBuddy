@@ -279,6 +279,9 @@ async function run() {
     app.delete('/habits/:id', authenticateJWT, async (req, res) => {
       try {
         const { id } = req.params;
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ error: 'Invalid habit ID' });
+        }
         const result = await habitsCollection.deleteOne({ _id: new ObjectId(id), userId: req.user.id });
         if (result.deletedCount === 0) {
           return res.status(404).send({ error: 'Habit not found' });
@@ -289,36 +292,30 @@ async function run() {
       }
     });
 
-// Schedule reminders
-const scheduleReminders = async () => {
-  const habits = await habitsCollection.find({ reminderTime: { $exists: true } }).toArray();
-  habits.forEach(habit => {
-    // Check if reminderTime is a valid string
-    if (habit.reminderTime && typeof habit.reminderTime === 'string') {
-      const [hour, minute] = habit.reminderTime.split(':');
-      if (hour !== undefined && minute !== undefined) {
-        cron.schedule(`${minute} ${hour} * * *`, async () => {
-          const user = await usersCollection.findOne({ _id: new ObjectId(habit.userId) });
-          if (user) {
-            await transporter.sendMail({
-              to: user.email,
-              subject: 'Habit Reminder',
-              text: `Reminder to complete your habit: ${habit.name}`,
-            });
-            console.log(`Reminder sent to ${user.email} for habit: ${habit.name}`);
-          }
-        });
-      } else {
-        console.error(`Invalid time format for habit: ${habit.name}`);
-      }
-    } else {
-      console.error(`Invalid or missing reminderTime for habit: ${habit.name}`);
-    }
-  });
-};
+    // Schedule reminders
+    // const scheduleReminders = async () => {
+    //   const habits = await habitsCollection.find({ reminderTime: { $exists: true } }).toArray();
+    //   habits.forEach(habit => {
+    //   const [hour, minute] = habit.reminderTime.split(':');
+    //   if (hour !== undefined && minute !== undefined) {
+    //     cron.schedule(`${minute} ${hour} * * *`, async () => {
+    //     const user = await usersCollection.findOne({ _id: new ObjectId(habit.userId) });
+    //     if (user) {
+    //       await transporter.sendMail({
+    //       to: user.email,
+    //       subject: 'Habit Reminder',
+    //       text: `Reminder to complete your habit: ${habit.name}`,
+    //       });
+    //     }
+    //     });
+    //   } else {
+    //     console.error(`Invalid reminderTime format for habit: ${habit.name}`);
+    //   }
+    //   });
+    // };
 
-// Call scheduleReminders function
-scheduleReminders();
+    // // Call scheduleReminders function
+    // scheduleReminders();
 
 
     // Start the server

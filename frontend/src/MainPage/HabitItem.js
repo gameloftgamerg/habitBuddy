@@ -1,15 +1,8 @@
 // HabitItem.js
 import React from 'react';
 
-const HabitItem = ({ habit, selectedDate, handleToggleHabit, handleViewCalendar }) => {
-    const handleItemClick = () => {
-        if (handleViewCalendar) {
-            handleViewCalendar(habit); // Call the passed function when clicked
-        } else {
-            console.error('handleViewCalendar is not defined');
-        }
-    };
 
+const HabitItem = ({ habit, selectedDate, handleToggleHabit, handleEditHabit, handleDeleteHabit }) => {
     return (
         <div 
             className="habit" 
@@ -33,11 +26,11 @@ const HabitItem = ({ habit, selectedDate, handleToggleHabit, handleViewCalendar 
                 <button className="stats-button" onClick={handleItemClick}>
                     <img className="button-icon" alt="Statistics" src="\bar-chart.png" />
                 </button>
-                <button className="edit-button">
-                    <img className="button-icon" alt="Edit" src="\edit1.png" />
+                <button className="edit-button" /*onClick={handleEditHabit(habit.id, habit)}> */>
+                    <img className = "button-icon" alt = "Edit" src = "\edit1.png" />
                 </button>
-                <button className="delete-button">
-                    <img className="button-icon" alt="Delete" src="\delete.png" />
+                <button className="delete-button" onClick={() => handleDeleteHabit(habit._id)}>
+                    <img className = "button-icon" alt = "Delete" src = "\delete.png" />
                 </button>
             </div>
         </div>
