@@ -2,15 +2,18 @@
 import React from 'react';
 
 
-const HabitItem = ({ habit, selectedDate, handleToggleHabit }) => {
+const HabitItem = ({ habit, selectedDate, handleToggleHabit, handleEditHabit, handleDeleteHabit }) => {
     return (
-        <div className="habit" style={{ backgroundColor: habit.color || '#4db6ac' }}>
+        <div 
+            className="habit" 
+            style={{ backgroundColor: habit.color || '#4db6ac' }} 
+        >
             <div>
                 <input 
-                type="checkbox"
-                checked={habit.completedDates.includes(selectedDate.toISOString().split('T')[0])}
-                onChange={() => handleToggleHabit(habit)}
-            />
+                    type="checkbox"
+                    checked={habit.completedDates.includes(selectedDate.toISOString().split('T')[0])}
+                    onChange={() => handleToggleHabit(habit)}
+                />
             </div>
 
             <span className={habit.completedDates.includes(selectedDate.toISOString().split('T')[0]) ? 'completed' : ''}>
@@ -20,18 +23,15 @@ const HabitItem = ({ habit, selectedDate, handleToggleHabit }) => {
             {/* Buttons for Statistics, Edit, Delete */}
             <div className="button-group">
                 <button className="stats-button">
-                <img className = "button-icon" alt = "Statistics" src = "\bar-chart.png" />
+                    <img className="button-icon" alt="Statistics" src="\bar-chart.png" />
                 </button>
-                <button className="edit-button">
+                <button className="edit-button" /*onClick={handleEditHabit(habit.id, habit)}> */>
                     <img className = "button-icon" alt = "Edit" src = "\edit1.png" />
                 </button>
-                <button className="delete-button">
+                <button className="delete-button" onClick={() => handleDeleteHabit(habit._id)}>
                     <img className = "button-icon" alt = "Delete" src = "\delete.png" />
                 </button>
-
-                {/* onClick={() => onShowStats(habit.id)}  onClick={() => onEdit(habit.id)}  onClick={() => onDelete(habit.id)} */}
             </div>
-
         </div>
     );
 };
