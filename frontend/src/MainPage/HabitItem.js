@@ -7,7 +7,6 @@ const HabitItem = ({ habit, selectedDate, handleToggleHabit, handleEditHabit, ha
         <div 
             className="habit" 
             style={{ backgroundColor: habit.color || '#4db6ac' }} 
-            onClick={handleItemClick} // Add onClick handler here
         >
             <div>
                 <input 
@@ -23,7 +22,7 @@ const HabitItem = ({ habit, selectedDate, handleToggleHabit, handleEditHabit, ha
 
             {/* Buttons for Statistics, Edit, Delete */}
             <div className="button-group">
-                <button className="stats-button" onClick={handleItemClick}>
+                <button className="stats-button">
                     <img className="button-icon" alt="Statistics" src="\bar-chart.png" />
                 </button>
                 <button className="edit-button" /*onClick={handleEditHabit(habit.id, habit)}> */>
