@@ -16,6 +16,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Middleware
 app.use(cors());
+
 app.use(bodyParser.json());
 
 // MongoDB Connection URI
@@ -48,6 +49,7 @@ async function run() {
     const db = client.db("habit-tracker");
     const habitsCollection = db.collection("habits");
     const usersCollection = db.collection("users");
+    const avatarsCollection = db.collection("avatars");
 
     // User Registration
     app.post('/register', async (req, res) => {
@@ -191,6 +193,47 @@ async function run() {
         res.status(500).send({ error: 'Failed to update habit', details: err.message });
       }
     });
+
+    // API endpoint to save avatar
+    app.post('/avatar', authenticateJWT, async (req, res) => {
+      console.log('Received avatar data:', req.body); // Log the incoming data
+      try {
+          
+          const { color, accessory, shape } = req.body;
+          const avatarData = { color, accessory, shape, userId: req.user.id };
+
+          // Check if the user already has an avatar
+          const existingAvatar = await avatarsCollection.findOne({ userId: req.user.id });
+          if (existingAvatar) {
+              await avatarsCollection.updateOne(
+                  { userId: req.user.id },
+                  { $set: avatarData }
+              );
+              res.status(200).send({ message: 'Avatar updated successfully' });
+          } else {
+              await avatarsCollection.insertOne(avatarData);
+              res.status(201).send({ message: 'Avatar created successfully' });
+            }
+      } catch (err) {
+          console.error('Error while saving avatar:', err); // Log the error
+          res.status(500).send({ error: 'Failed to save avatar', details: err.message });
+        }
+    });
+  
+
+    // Fetch avatar for logged-in user
+    app.get('/avatar', authenticateJWT, async (req, res) => {
+        try {
+            const avatar = await avatarsCollection.findOne({ userId: req.user.id });
+            if (!avatar) {
+                return res.status(404).send({ error: 'Avatar not found' });
+            }
+            res.status(200).send(avatar);
+        } catch (error) {
+            res.status(500).send({ error: 'Failed to fetch avatar', details: error.message });
+        }
+    });
+
 
     // Start the server
     app.listen(PORT, () => {
