@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import HabitList from './HabitList';
 import AddHabitPopup from './AddHabitPopup';
 import DateCarousel from './DateCarousel';
+import AvatarBuilder from './AvatarBuilder';
+import AvatarDisplay from './AvatarDisplay';
 
 const MainPage = ({ token, isLoggedIn }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -13,6 +15,9 @@ const MainPage = ({ token, isLoggedIn }) => {
     const [frequencyDays, setFrequencyDays] = useState([]);
     const [habitColor, setHabitColor] = useState('#4db6ac'); // default color
     const [showAddHabitPopup, setShowAddHabitPopup] = useState(false);
+    const [avatar, setAvatar] = useState({}); // State to store the avatar configuration
+    const [editAvatar, setEditAvatar] = useState(false);
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -23,61 +28,35 @@ const MainPage = ({ token, isLoggedIn }) => {
         }
     }, [isLoggedIn]);
 
-    const handleToggleHabit = async (habit) => {
-        const date = selectedDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
-
-        if (habit.completedDates.includes(date)) {
-            // If already completed, remove the completion
-            try {
-                const response = await fetch(`http://localhost:2000/habits/${habit._id}/incomplete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ date }),
-                });
-                if (response.ok) {
-                    setHabits(prev =>
-                        prev.map(h =>
-                            h._id === habit._id 
-                                ? { ...h, completedDates: h.completedDates.filter(d => d !== date) } 
-                                : h
-                        )
-                    );
-                } else {
-                    console.error('Failed to mark habit as incomplete:', await response.json());
-                }
-            } catch (error) {
-                console.error('Failed to mark habit as incomplete:', error);
-            }
-        } else {
-            // If not completed, mark it as complete
-            try {
-                const response = await fetch(`http://localhost:2000/habits/${habit._id}/complete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ date }),
-                });
-                if (response.ok) {
-                    setHabits(prev =>
-                        prev.map(h =>
-                            h._id === habit._id 
-                                ? { ...h, completedDates: [...h.completedDates, date] } 
-                                : h
-                        )
-                    );
-                } else {
-                    console.error('Failed to mark habit as complete:', await response.json());
-                }
-            } catch (error) {
-                console.error('Failed to mark habit as complete:', error);
-            }
+    const closeAvatarBuilder = () => {
+        setEditAvatar(false); // This sets the state to false, effectively closing the avatar builder
+    };
+    
+    const fetchAvatar = async () => {
+        try {
+            const response = await fetch('http://localhost:2000/avatar', {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const data = await response.json();
+            setAvatar(data);
+        } catch (error) {
+            console.error('Failed to fetch avatar:', error);
         }
     };
+    
+    // Call fetchAvatar after fetching habits
+    useEffect(() => {
+        if (isLoggedIn) {
+            fetchHabits();
+            fetchAvatar(); // Fetch avatar when user logs in
+        } else {
+            navigate("/login");
+        }
+    }, [isLoggedIn]);
+    
 
     const fetchHabits = async () => {
         try {
@@ -113,6 +92,7 @@ const MainPage = ({ token, isLoggedIn }) => {
                     console.error('Failed to add habit:', data.error);
                 }
                 resetHabitForm();
+                fetchHabits();
             } catch (error) {
                 console.error('Failed to add habit:', error);
             }
@@ -126,43 +106,46 @@ const MainPage = ({ token, isLoggedIn }) => {
         setShowAddHabitPopup(false);
     };
 
-    const handleFrequencyChange = (day) => {
-        if (frequencyDays.includes(day)) {
-          setFrequencyDays(frequencyDays.filter(d => d !== day));
-        } else {
-          setFrequencyDays([...frequencyDays, day]);
-        }
-    };
-
-    const changeDate = (days) => {
-      setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + days)));
-    };
-
     return (
-      <div className="main-page">
-          <h1>Habit Tracker</h1>
+        <div className="main-page">
+            <h1>Habit Tracker</h1>
 
-          <DateCarousel selectedDate={selectedDate} changeDate={changeDate} />
+            {/* Display Avatar and Edit Button */}
+            <div className="avatar-section">
+                <h2>Your Avatar</h2>
+                <AvatarDisplay avatar={avatar} />
+                <button onClick={() => setEditAvatar(!editAvatar)}>
+                    {editAvatar ? 'Close Editor' : 'Edit Avatar'}
+                </button>
+            </div>
 
-          <h2>Habits for {selectedDate.toLocaleDateString('en-GB')}</h2>
-          <HabitList habits={habits.filter(habit => habit.frequencyDays.includes(selectedDate.getDay()))} selectedDate={selectedDate} handleToggleHabit={handleToggleHabit} />
+            {/* Conditionally render AvatarBuilder */}
+            {editAvatar && <AvatarBuilder 
+            avatar={avatar} 
+            setAvatar={setAvatar} 
+            token = {token} />}
 
-          <button onClick={() => setShowAddHabitPopup(true)}>Add Habit</button>
+            <DateCarousel selectedDate={selectedDate} changeDate={(days) => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + days)))} />
 
-          {showAddHabitPopup && (
-              <AddHabitPopup 
-                  newHabit={newHabit}
-                  setNewHabit={setNewHabit}
-                  frequencyDays={frequencyDays}
-                  handleFrequencyChange={handleFrequencyChange}
-                  habitColor={habitColor}
-                  setHabitColor={setHabitColor}
-                  handleAddHabit={handleAddHabit}
-                  resetHabitForm={resetHabitForm}
-              />
-          )}
-      </div>
-  );
+            <h2>Habits for {selectedDate.toLocaleDateString('en-GB')}</h2>
+            <HabitList habits={habits.filter(habit => habit.frequencyDays.includes(selectedDate.getDay()))} selectedDate={selectedDate} />
+
+            <button id="addhabit" onClick={() => setShowAddHabitPopup(true)}>Add Habit</button>
+
+            {showAddHabitPopup && (
+                <AddHabitPopup 
+                    newHabit={newHabit}
+                    setNewHabit={setNewHabit}
+                    frequencyDays={frequencyDays}
+                    handleFrequencyChange={(day) => setFrequencyDays(frequencyDays.includes(day) ? frequencyDays.filter(d => d !== day) : [...frequencyDays, day])}
+                    habitColor={habitColor}
+                    setHabitColor={setHabitColor}
+                    handleAddHabit={handleAddHabit}
+                    resetHabitForm={resetHabitForm}
+                />
+            )}
+        </div>
+    );
 };
 
 export default MainPage;
