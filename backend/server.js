@@ -194,6 +194,27 @@ async function run() {
       }
     });
 
+      // Mark habit as incomplete
+      app.post('/habits/:id/incomplete', authenticateJWT, async (req, res) => {
+        try {
+          const { id } = req.params;
+          const { date } = req.body;
+          const habit = await habitsCollection.findOne({ _id: new ObjectId(id), userId: req.user.id });
+          if (!habit) {
+            return res.status(404).send({ error: 'Habit not found' });
+          }
+          const completedDates = habit.completedDates || [];
+          const dateIndex = completedDates.indexOf(date);
+          if (dateIndex !== -1) {
+            completedDates.splice(dateIndex, 1);
+          }
+          await habitsCollection.updateOne({ _id: new ObjectId(id) }, { $set: { completedDates } });
+          res.status(200).send({ message: 'Habit marked as incomplete' });
+        } catch (err) {
+          res.status(500).send({ error: 'Failed to update habit', details: err.message });
+        }
+      });
+
     // API endpoint to save avatar
     app.post('/avatar', authenticateJWT, async (req, res) => {
       console.log('Received avatar data:', req.body); // Log the incoming data
