@@ -1,16 +1,27 @@
 // HabitItem.js
 import React from 'react';
 
+const HabitItem = ({ habit, selectedDate, handleToggleHabit, handleViewCalendar }) => {
+    const handleItemClick = () => {
+        if (handleViewCalendar) {
+            handleViewCalendar(habit); // Call the passed function when clicked
+        } else {
+            console.error('handleViewCalendar is not defined');
+        }
+    };
 
-const HabitItem = ({ habit, selectedDate, handleToggleHabit }) => {
     return (
-        <div className="habit" style={{ backgroundColor: habit.color || '#4db6ac' }}>
+        <div 
+            className="habit" 
+            style={{ backgroundColor: habit.color || '#4db6ac' }} 
+            onClick={handleItemClick} // Add onClick handler here
+        >
             <div>
                 <input 
-                type="checkbox"
-                checked={habit.completedDates.includes(selectedDate.toISOString().split('T')[0])}
-                onChange={() => handleToggleHabit(habit)}
-            />
+                    type="checkbox"
+                    checked={habit.completedDates.includes(selectedDate.toISOString().split('T')[0])}
+                    onChange={() => handleToggleHabit(habit)}
+                />
             </div>
 
             <span className={habit.completedDates.includes(selectedDate.toISOString().split('T')[0]) ? 'completed' : ''}>
@@ -19,19 +30,16 @@ const HabitItem = ({ habit, selectedDate, handleToggleHabit }) => {
 
             {/* Buttons for Statistics, Edit, Delete */}
             <div className="button-group">
-                <button className="stats-button">
-                <img className = "button-icon" alt = "Statistics" src = "\bar-chart.png" />
+                <button className="stats-button" onClick={handleItemClick}>
+                    <img className="button-icon" alt="Statistics" src="\bar-chart.png" />
                 </button>
                 <button className="edit-button">
-                    <img className = "button-icon" alt = "Edit" src = "\edit1.png" />
+                    <img className="button-icon" alt="Edit" src="\edit1.png" />
                 </button>
                 <button className="delete-button">
-                    <img className = "button-icon" alt = "Delete" src = "\delete.png" />
+                    <img className="button-icon" alt="Delete" src="\delete.png" />
                 </button>
-
-                {/* onClick={() => onShowStats(habit.id)}  onClick={() => onEdit(habit.id)}  onClick={() => onDelete(habit.id)} */}
             </div>
-
         </div>
     );
 };

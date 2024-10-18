@@ -1,9 +1,7 @@
-// HabitList.js
 import React from 'react';
 import HabitItem from './HabitItem';
 
-
-const HabitList = ({ habits, selectedDate, handleToggleHabit }) => {
+const HabitList = ({ habits, selectedDate, handleToggleHabit, handleViewCalendar }) => {
     return (
         <div className="habitlist">
             {habits.map(habit => (
@@ -12,6 +10,7 @@ const HabitList = ({ habits, selectedDate, handleToggleHabit }) => {
                     habit={habit} 
                     selectedDate={selectedDate} 
                     handleToggleHabit={handleToggleHabit} 
+                    handleViewCalendar={handleViewCalendar} // Pass down the handleViewCalendar function
                 />
             ))}
         </div>
