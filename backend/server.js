@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const cron = require('node-cron');
 
 const app = express();
 const PORT = process.env.PORT;
@@ -149,14 +150,14 @@ async function run() {
       }
     };
 
-    // Habit routes now require authentication
+    // Habit creation endpoint
     app.post('/habits', authenticateJWT, async (req, res) => {
       try {
-        const { name, frequencyDays, color } = req.body;
+        const { name, frequencyDays, color, reminderTime } = req.body;
         if (!name || !frequencyDays) {
           return res.status(400).send({ error: 'Habit name and frequency days are required' });
         }
-        const habit = { name, frequencyDays, color, completedDates: [], userId: req.user.id };
+        const habit = { name, frequencyDays, color, reminderTime, completedDates: [], userId: req.user.id };
         const result = await habitsCollection.insertOne(habit);
         res.status(201).send(result.ops[0]);
       } catch (err) {
@@ -193,6 +194,7 @@ async function run() {
         res.status(500).send({ error: 'Failed to update habit', details: err.message });
       }
     });
+
 
       // Mark habit as incomplete
       app.post('/habits/:id/incomplete', authenticateJWT, async (req, res) => {
@@ -254,6 +256,63 @@ async function run() {
             res.status(500).send({ error: 'Failed to fetch avatar', details: error.message });
         }
     });
+
+
+    // Update habit endpoint
+    app.put('/habits/:id', authenticateJWT, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { name, frequencyDays, color, reminderTime } = req.body;
+        const habit = await habitsCollection.findOne({ _id: new ObjectId(id), userId: req.user.id });
+        if (!habit) {
+          return res.status(404).send({ error: 'Habit not found' });
+        }
+        const updatedHabit = { name, frequencyDays, color, reminderTime };
+        await habitsCollection.updateOne({ _id: new ObjectId(id) }, { $set: updatedHabit });
+        res.status(200).send({ ...habit, ...updatedHabit });
+      } catch (err) {
+        res.status(500).send({ error: 'Failed to update habit', details: err.message });
+      }
+    });
+
+    // Delete habit endpoint
+    app.delete('/habits/:id', authenticateJWT, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await habitsCollection.deleteOne({ _id: new ObjectId(id), userId: req.user.id });
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ error: 'Habit not found' });
+        }
+        res.send({ message: 'Habit deleted successfully' });
+      } catch (err) {
+        res.status(500).send({ error: 'Failed to delete habit', details: err.message });
+      }
+    });
+
+    // Schedule reminders
+    const scheduleReminders = async () => {
+      const habits = await habitsCollection.find({ reminderTime: { $exists: true } }).toArray();
+      habits.forEach(habit => {
+      const [hour, minute] = habit.reminderTime.split(':');
+      if (hour !== undefined && minute !== undefined) {
+        cron.schedule(`${minute} ${hour} * * *`, async () => {
+        const user = await usersCollection.findOne({ _id: new ObjectId(habit.userId) });
+        if (user) {
+          await transporter.sendMail({
+          to: user.email,
+          subject: 'Habit Reminder',
+          text: `Reminder to complete your habit: ${habit.name}`,
+          });
+        }
+        });
+      } else {
+        console.error(`Invalid reminderTime format for habit: ${habit.name}`);
+      }
+      });
+    };
+
+    // Call scheduleReminders function
+    scheduleReminders();
 
 
     // Start the server
