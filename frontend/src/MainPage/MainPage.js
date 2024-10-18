@@ -1,4 +1,3 @@
-// MainPage.js
 import React, { useState, useEffect } from 'react';
 import './MainPage.css'; // For styling
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +6,7 @@ import AddHabitPopup from './AddHabitPopup';
 import DateCarousel from './DateCarousel';
 import AvatarBuilder from './AvatarBuilder';
 import AvatarDisplay from './AvatarDisplay';
+import FaceApi from './FaceApi'; // Import your FaceApi component
 
 const MainPage = ({ token, isLoggedIn }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -16,22 +16,20 @@ const MainPage = ({ token, isLoggedIn }) => {
     const [habitColor, setHabitColor] = useState('#4db6ac'); // default color
     const [showAddHabitPopup, setShowAddHabitPopup] = useState(false);
     const [avatar, setAvatar] = useState({}); // State to store the avatar configuration
-    const [editAvatar, setEditAvatar] = useState(false);
+    const [editAvatar, setEditAvatar] = useState(false); // Control AvatarBuilder visibility
+    const [useFaceApi, setUseFaceApi] = useState(false); // State to control FaceApi.js rendering
 
     const navigate = useNavigate();
 
     useEffect(() => {
         if (isLoggedIn) {
             fetchHabits();
+            fetchAvatar(); // Fetch avatar when user logs in
         } else {
             navigate("/login");
         }
     }, [isLoggedIn]);
 
-    const closeAvatarBuilder = () => {
-        setEditAvatar(false); // This sets the state to false, effectively closing the avatar builder
-    };
-    
     const fetchAvatar = async () => {
         try {
             const response = await fetch('http://localhost:2000/avatar', {
@@ -46,17 +44,6 @@ const MainPage = ({ token, isLoggedIn }) => {
             console.error('Failed to fetch avatar:', error);
         }
     };
-    
-    // Call fetchAvatar after fetching habits
-    useEffect(() => {
-        if (isLoggedIn) {
-            fetchHabits();
-            fetchAvatar(); // Fetch avatar when user logs in
-        } else {
-            navigate("/login");
-        }
-    }, [isLoggedIn]);
-    
 
     const fetchHabits = async () => {
         try {
@@ -110,34 +97,56 @@ const MainPage = ({ token, isLoggedIn }) => {
         <div className="main-page">
             <h1>Habit Tracker</h1>
 
-            {/* Display Avatar and Edit Button */}
+            {/* Avatar Section */}
             <div className="avatar-section">
                 <h2>Your Avatar</h2>
+                {/* Display the current avatar */}
                 <AvatarDisplay avatar={avatar} />
+
+                {/* Toggle buttons for different avatar systems */}
                 <button onClick={() => setEditAvatar(!editAvatar)}>
-                    {editAvatar ? 'Close Editor' : 'Edit Avatar'}
+                    {editAvatar ? 'Close Avatar Builder' : 'Edit Avatar'}
+                </button>
+                <button onClick={() => setUseFaceApi(!useFaceApi)}>
+                    {useFaceApi ? 'Close Face Avatar' : 'Generate Face Avatar'}
                 </button>
             </div>
 
             {/* Conditionally render AvatarBuilder */}
-            {editAvatar && <AvatarBuilder 
-            avatar={avatar} 
-            setAvatar={setAvatar} 
-            token = {token} />}
+            {editAvatar && (
+                <AvatarBuilder
+                    avatar={avatar}
+                    setAvatar={setAvatar}
+                    token={token} // Pass token if needed for saving avatar
+                />
+            )}
 
-            <DateCarousel selectedDate={selectedDate} changeDate={(days) => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + days)))} />
+            {/* Conditionally render FaceApi component */}
+            {useFaceApi && <FaceApi setAvatar={setAvatar} token={token} />} 
+
+            <DateCarousel
+                selectedDate={selectedDate}
+                changeDate={(days) => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + days)))}
+            />
 
             <h2>Habits for {selectedDate.toLocaleDateString('en-GB')}</h2>
-            <HabitList habits={habits.filter(habit => habit.frequencyDays.includes(selectedDate.getDay()))} selectedDate={selectedDate} />
+            <HabitList
+                habits={habits.filter(habit => habit.frequencyDays.includes(selectedDate.getDay()))}
+                selectedDate={selectedDate}
+            />
 
             <button id="addhabit" onClick={() => setShowAddHabitPopup(true)}>Add Habit</button>
 
             {showAddHabitPopup && (
-                <AddHabitPopup 
+                <AddHabitPopup
                     newHabit={newHabit}
                     setNewHabit={setNewHabit}
                     frequencyDays={frequencyDays}
-                    handleFrequencyChange={(day) => setFrequencyDays(frequencyDays.includes(day) ? frequencyDays.filter(d => d !== day) : [...frequencyDays, day])}
+                    handleFrequencyChange={(day) =>
+                        setFrequencyDays(frequencyDays.includes(day)
+                            ? frequencyDays.filter(d => d !== day)
+                            : [...frequencyDays, day])
+                    }
                     habitColor={habitColor}
                     setHabitColor={setHabitColor}
                     handleAddHabit={handleAddHabit}
